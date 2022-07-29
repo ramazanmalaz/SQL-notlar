@@ -1,0 +1,715 @@
+--Table Nasıl Oluşturulur:
+
+--1. Yol: Sıfırdan Table oluşturmak:
+
+CREATE TABLE students
+(
+student_id SMALLINT,
+student_name VARCHAR(50),
+student_age SMALLINT,
+student_dob DATE
+);
+
+--2. Yol: Başka bir table kullanarak table oluşturma:
+
+CREATE TABLE student_name_age
+AS SELECT student_name, student_age
+FROM students;
+
+SELECT * FROM student_name_age;
+
+--Table oluştururken bazı "Constraint" atamaları yapabiliriz.
+--Constraints:
+--a)Unique
+--b)Not Null
+--c)Primary Key
+--d)Foreign Key
+--e)Check Constraint 
+
+--Primary Key oluşturmak için iki yol kullanabiliriz:
+
+--1.Yol:
+
+CREATE TABLE students
+(
+student_id SMALLINT PRIMARY KEY,
+student_name VARCHAR(50) NOT NULL, --student_name null değer alamaz.
+student_age SMALLINT,
+student_dob DATE UNIQUE -->student_dob unique key ==> null değer dışındaki değerler tekrarsız olmalıdır. Çoklu null değer atanabilir.
+
+);
+
+--2.Yol:
+CREATE TABLE students
+(
+student_id SMALLINT,
+student_name VARCHAR(50),
+student_age SMALLINT,
+student_dob DATE,
+CONSTRAINT student_id_pk PRIMARY KEY(student_id)
+);
+
+--Foreign Key Constraint Nasıl Eklenir:
+CREATE TABLE parents
+(
+student_id SMALLINT,
+parent_name VARCHAR(50),
+phone_number CHAR(11),
+CONSTRAINT student_id_pk PRIMARY KEY (student_id)
+);
+
+
+CREATE TABLE students
+(
+student_id SMALLINT,
+student_name VARCHAR(50),
+student_age SMALLINT,
+student_dob DATE,
+CONSTRAINT student_id_fk FOREIGN KEY(student_id) REFERENCES parents(student_id)
+);
+
+--Check Constraint nasıl eklenir:
+
+CREATE TABLE students
+(
+student_id SMALLINT,
+student_name VARCHAR(50),
+student_age SMALLINT,
+student_dob DATE,
+CONSTRAINT student_age_check CHECK(student_age BETWEEN 0 AND 30), --0 ve 30 dahil
+CONSTRAINT studen_name_check CHECK (student_name = UPPER(student_name))    
+);
+
+--table'a veri nasıl girilir:
+CREATE TABLE students
+(
+student_id SMALLINT PRIMARY KEY,
+student_name VARCHAR(50) UNIQUE,
+student_age SMALLINT NOT NULL,
+student_dob DATE,
+CONSTRAINT student_age_check CHECK(student_age BETWEEN 0 AND 30), --0 ve 30 dahil
+CONSTRAINT studen_name_check CHECK (student_name = UPPER(student_name))    
+);
+
+INSERT INTO students VALUES (101,'ALİ CAN',13,'10-Aug-2008');
+INSERT INTO students VALUES (102,'VELİ HAN',14,'10-Aug-2007');
+INSERT INTO students VALUES (103,'AYŞE TAN',14,'10-Aug-2007');
+
+--INtejer değerler single quote (tek tırnak) ile veya yalın kullanılabilir.
+INSERT INTO students VALUES ('104','KEMAL KUZU',15,NULL);
+INSERT INTO students VALUES ('105','TOM HANKS',15,'12-Sep-1996');
+INSERT INTO students VALUES ('106','ANGELINA JULIA',30,'10-Aug-2008');
+INSERT INTO students VALUES ('107','BRAD PITT',0,'26-Jul-2022');
+
+--Spesifik bir sütuna veri nasl girilir:
+
+INSERT INTO students (student_id,student_age) VALUES (108,17);
+INSERT INTO students (student_name, student_id,student_age) VALUES ('JOHN WALKER',109,17);
+
+--Varolan bir data nasıl değiştirilir:
+UPDATE students
+SET student_name = 'LEO OCEAN'
+WHERE student_id = 108;
+
+--John Walker, dob sütununu 11-Dec-1997 değerine değiştir.
+
+UPDATE students
+SET student_dob = '11-Dec-1996'
+WHERE student_name ='JOHN WALKER'
+
+
+
+SELECT * FROM students;
+-----------------------------------------
+
+CREATE TABLE workers
+(
+    id SMALLINT,
+    name VARCHAR(50),
+    salary SMALLINT,
+    CONSTRAINT id4_pk PRIMARY KEY(id)
+);
+INSERT INTO workers VALUES(10001, 'Ali Can', 12000);
+INSERT INTO workers VALUES(10002, 'Veli Han', 2000);
+INSERT INTO workers VALUES(10003, 'Mary Star', 7000);
+INSERT INTO workers VALUES(10004, 'Angie Ocean', 8500);
+
+--En düşük ve en büyük salaey değerlerine sahip recordları çağırın.
+--1.Yol:
+SELECT *
+FROM workers
+WHERE salary IN ((SELECT MAX (salary) FROM workers),(SELECT MIN (salary) FROM workers))
+
+--2.Yol:
+SELECT *
+FROM workers
+WHERE salary = (SELECT MAX(salary) FROM workers) OR salary = (SELECT MIN salary FROM workers);
+
+--En yüksek salary değerini bulun.
+--1. Yol:"AS" keywordu kullanılarak konsola geçici (temporary) field oluşturulabilir.
+SELECT MAX (salary) AS maximum_salary
+FROM workers
+--2. Yol:
+SELECT salary
+FROM workers
+WHERE salary = (SELECT MAX(salary) FROM workers)
+
+--En düşük salary değerini bulun.
+SELECT MIN (salary) AS minimum_salary
+FROM workers
+
+--Salary ortalamasını bulun.
+SELECT AVG (salary) AS avarage_salary
+FROM workers;
+
+--Records sayısını (adedini) bulun.
+SELECT COUNT (name) AS number_of_workers
+FROM workers;
+
+--Salary değerlerinin toplamını bulun
+SELECT SUM (salary) AS sum_of_salaries
+FROM workers;
+
+--Interview Questions: En yüksek ikinci salary değerini çağırma
+SELECT MAX(salary)
+FROM workers
+WHERE salary < (SELECT MAX(salary) FROM workers);
+
+--Interview Questions:En küçük ikinci salary değerini çağırma
+SELECT MIN(salary)
+FROM workers
+WHERE salary > (SELECT MIN(salary) FROM workers);
+
+--En yüksek üçüncü salary değerini bulun:
+
+SELECT MAX(salary) AS third_max_salary
+FROM workers
+WHERE salary < (SELECT MAX(salary)
+                FROM workers
+                WHERE salary < (SELECT MAX(salary) FROM workers));
+
+--En düşük üçüncü salary değerini bulun:
+SELECT MIN(salary) AS third_min_salary
+FROM workers
+WHERE salary > (SELECT MIN(salary)
+                FROM workers
+                WHERE salary > (SELECT MIN(salary) FROM workers));
+
+--Salary değeri en yüksek ikinci değere sahip record'ı çağırın:
+--1. Yol:
+SELECT *
+FROM workers
+WHERE salary = (SELECT MAX(salary)
+                FROM workers
+                WHERE salary < (SELECT MAX(salary) FROM workers)
+);
+--2.Yol:
+SELECT *
+FROM workers
+ORDER BY salary DESC
+OFFSET 1 ROW
+FETCH NEXT 1 ROW ONLY;
+
+--Salary değeri en düşük ikinci değere sahip record'ı çağırın:
+--1. YOl:
+SELECT *
+FROM workers
+WHERE salary = (SELECT MIN(salary)
+                FROM workers
+                WHERE salary > (SELECT MIN(salary) FROM workers));
+--2. Yol:
+SELECT *
+FROM workers
+ORDER BY salary ASC
+OFFSET 1 ROW
+FETCH NEXT 1 ROW ONLY;
+
+--Salary değeri en yüksek üçüncü record'ı çağırın.
+--1.Yol:
+SELECT *
+FROM workers
+WHERE salary = (SELECT MAX(salary)
+                FROM workers
+                WHERE salary < (SELECT MAX(salary)
+                FROM workers
+                WHERE salary < (SELECT MAX(salary) FROM workers)));
+--2.Yol:
+SELECT *
+FROM workers
+ORDER BY salary DESC
+OFFSET 2 ROW
+FETCH NEXT 1 ROW ONLY;
+
+
+
+SELECT * FROM workers;
+-----------------------------
+
+CREATE TABLE customers_products
+(
+  product_id CHAR(10),
+  customer_name VARCHAR(50),
+  product_name VARCHAR(50)
+);
+INSERT INTO customers_products VALUES (10, 'Mark', 'Orange');
+INSERT INTO customers_products VALUES (10, 'Mark', 'Orange');
+INSERT INTO customers_products VALUES (20, 'John', 'Apple');
+INSERT INTO customers_products VALUES (30, 'Amy', 'Palm');
+INSERT INTO customers_products VALUES (20, 'Mark', 'Apple');
+INSERT INTO customers_products VALUES (10, 'Adem', 'Orange');
+INSERT INTO customers_products VALUES (40, 'John', 'Apricot');
+INSERT INTO customers_products VALUES (20, 'Eddie', 'Apple');
+
+SELECT * FROM customers_products
+
+--customers_name değeri Orange Apple ya da Palm olan recordları çağıralım. 
+--1.Yol:
+SELECT *
+FROM customers_products
+WHERE product_name='Orange' OR product_name='Apple' OR product_name='Palm';
+--2.Yol:
+SELECT *
+FROM customers_products
+WHERE product_name IN ('Orange', 'Apple','Palm');
+
+
+--customers_name değeri Orange Apple ya da Palm olmayan recordları çağıralım. 
+--1.Yol:
+SELECT *
+FROM customers_products
+WHERE product_name NOT IN ('Orange', 'Apple','Palm');
+
+--BETWEEN Condition
+
+--product_id'si 30'dan küçük veya 20'den büyük beua eşit recordları çağırın.
+--1.YOL:
+SELECT *
+FROM customers_products
+WHERE product_id <= '30' AND product_id >= '20';
+--2.YOL:
+SELECT *
+FROM customers_products
+WHERE product_id BETWEEN '20' AND '30' --20 ve 30 dahil
+
+--product id değeri 20'den küçük, 25'den büyük recordları getirin
+--1.YOL:
+SELECT *
+FROM customers_products
+WHERE product_id <= '20' OR product_id >= '25';
+--2.YOL:
+SELECT *
+FROM customers_products
+WHERE product_id NOT BETWEEN '20' AND '25'
+--------------------------------------------
+--EXISTS Conditions - EXISTS Condition 'Subquery' ile kullanılır.
+--                    Eğer Subquery herhangi bir data çağırırsa 'Outer Query' çalıştırılır.
+--                    Eğer Subquery herhangi bir data çağırmazsa 'Outer Query' çalıştırılmaz.
+--                    EXISTS Condition Select, Insert, Update, Delete komutlarında kullanılabilir.
+
+CREATE TABLE customers_likes
+(
+  product_id CHAR(10),
+  customer_name VARCHAR(50),
+  liked_product VARCHAR(50)
+);
+INSERT INTO customers_likes VALUES (10, 'Mark', 'Orange');
+INSERT INTO customers_likes VALUES (50, 'Mark', 'Pineapple');
+INSERT INTO customers_likes VALUES (60, 'John', 'Avocado');
+INSERT INTO customers_likes VALUES (30, 'Lary', 'Cherries');
+INSERT INTO customers_likes VALUES (20, 'Mark', 'Apple');
+INSERT INTO customers_likes VALUES (10, 'Adem', 'Orange');
+INSERT INTO customers_likes VALUES (40, 'John', 'Apricot');
+INSERT INTO customers_likes VALUES (20, 'Eddie', 'Apple');
+
+--customer_name değerleri arasında Lary varsa customer_name değerlerini "No name" olarak güncelle.
+
+UPDATE customers_likes
+SET customer_name='No name'
+WHERE EXISTS (SELECT liked_product FROM customers_likes WHERE customer_name='Lary');
+
+--liked_product değerleri arasında Orange, Pineapple ya da Avacado varsa name değerlerini "No Name"olarak güncelle: 
+UPDATE customers_likes
+SET customer_name ='No Name'
+WHERE EXISTS (SELECT customer_name FROM customers_likes WHERE liked_product IN ('Orange','Pineapple','Avacado') );
+
+--custumer_name değerleri arasında Orange olan recordları silin.
+
+DELETE FROM customers_likes
+WHERE EXISTS (SELECT liked_product FROM customers_likes WHERE liked_product ='Orange' );
+
+
+SELECT * FROM customers_likes;
+
+---------------------------------------------------
+
+--SUBQUERY 
+
+CREATE TABLE employees
+(
+  id CHAR(9),
+  name VARCHAR(50),
+  state VARCHAR(50),
+  salary SMALLINT,
+  company VARCHAR(20)
+);
+INSERT INTO employees VALUES(123456789, 'John Walker', 'Florida', 2500, 'IBM');
+INSERT INTO employees VALUES(234567890, 'Brad Pitt', 'Florida', 1500, 'APPLE');
+INSERT INTO employees VALUES(345678901, 'Eddie Murphy', 'Texas', 3000, 'IBM');
+INSERT INTO employees VALUES(456789012, 'Eddie Murphy', 'Virginia', 1000, 'GOOGLE');
+INSERT INTO employees VALUES(567890123, 'Eddie Murphy', 'Texas', 7000, 'MICROSOFT');
+INSERT INTO employees VALUES(456789012, 'Brad Pitt', 'Texas', 1500, 'GOOGLE');
+INSERT INTO employees VALUES(123456710, 'Mark Stone', 'Pennsylvania', 2500, 'IBM');
+SELECT * FROM employees;
+
+CREATE TABLE companies
+(
+  company_id CHAR(9),
+  company VARCHAR(20),
+  number_of_employees SMALLINT
+);
+INSERT INTO companies VALUES(100, 'IBM', 12000);
+INSERT INTO companies VALUES(101, 'GOOGLE', 18000);
+INSERT INTO companies VALUES(102, 'MICROSOFT', 10000);
+INSERT INTO companies VALUES(103, 'APPLE', 21000);
+SELECT * FROM companies;
+
+--number_of_employees değeri 15000'den büyük olan name ve company değerlerini çağırın.
+SELECT name, company
+FROM employees
+WHERE company IN (SELECT company FROM companies WHERE number_of_employees >15000);
+
+--Florida'da bulunan company_id ve company değerlerini çağırın.
+
+SELECT company_id, company
+FROM companies
+WHERE company IN (SELECT company FROM employees WHERE state ='Florida');
+
+--company_id değeri 100'den büyük olan name ve stat değerlerini çağırınız.
+
+SELECT name, state, company
+FROM employees
+WHERE company IN (SELECT company FROM companies WHERE company_id > '100');
+
+CREATE TABLE employees
+(
+  id CHAR(9),
+  name VARCHAR(50),
+  state VARCHAR(50),
+  salary SMALLINT,
+  company VARCHAR(20)
+);
+INSERT INTO employees VALUES(123456789, 'John Walker', 'Florida', 2500, 'IBM');
+INSERT INTO employees VALUES(234567890, 'Brad Pitt', 'Florida', 1500, 'APPLE');
+INSERT INTO employees VALUES(345678901, 'Eddie Murphy', 'Texas', 3000, 'IBM');
+INSERT INTO employees VALUES(456789012, 'Eddie Murphy', 'Virginia', 1000, 'GOOGLE');
+INSERT INTO employees VALUES(567890123, 'Eddie Murphy', 'Texas', 7000, 'MICROSOFT');
+INSERT INTO employees VALUES(456789012, 'Brad Pitt', 'Texas', 1500, 'GOOGLE');
+INSERT INTO employees VALUES(123456710, 'Mark Stone', 'Pennsylvania', 2500, 'IBM');
+SELECT * FROM employees;
+CREATE TABLE companies
+(
+  company_id CHAR(9),
+  company VARCHAR(20),
+  number_of_employees SMALLINT
+);
+INSERT INTO companies VALUES(100, 'IBM', 12000);
+INSERT INTO companies VALUES(101, 'GOOGLE', 18000);
+INSERT INTO companies VALUES(102, 'MICROSOFT', 10000);
+INSERT INTO companies VALUES(103, 'APPLE', 21000);
+SELECT * FROM companies;
+
+--18)Herbir company için company, number_of_employees ve ortalama salary değerlerini bulun.
+
+SELECT company,number_of_employees, (SELECT AVG (salary) FROM employees 
+                                     WHERE companies.company = employees.company) AS avg_salary_compant
+FROM companies;
+
+--Herbir company için company_id, company,  en yüksek ve en düşük salary değerlerini bulun.
+
+SELECT company_id,company,(SELECT MAX(salary) FROM employees WHERE companies.company = employees.company) AS max_1,
+                           (SELECT MIN(salary) FROM employees WHERE companies.company = employees.company) AS min_1
+
+FROM companies;
+-------------------------------------------------------------
+--LIKE Condition: Wildcard ile kullanılır.
+--1) % Wildcard: Sıfır ya da daha fazla karakteri temsil eder.
+
+--'E' ile başlayan employee 'name' değerlerini çağırın.
+
+SELECT name 
+FROM employees
+WHERE name LIKE 'E%';
+
+--'e' ile biten employee 'name' değerlerini çağırın.
+SELECT name 
+FROM employees
+WHERE name LIKE '%e';
+
+--Herhangi bir yerinde 'a' bulunan employee 'name' değerlerini çağırın.
+SELECT name 
+FROM employees
+WHERE name LIKE '%a%';
+
+--Herhangi bir yerinde 'e' veya 'r' bulunan employee 'name' değerlerini çağırın.
+SELECT name 
+FROM employees
+WHERE name LIKE '%e%k%' OR name LIKE '%k%e%' ;
+
+--1) _ Wildcard: Tek karakteri temsil eder.
+
+--İkinci karakteri 'e' ve dördüncü karakteri 'n' olan "state" değerlerini çağırın.
+
+SELECT state
+FROM employees
+WHERE state LIKE '_e_n%';
+--Sondan ikinci karakteri 'i' olan "state" değerlerini çağırın.
+
+SELECT state
+FROM employees
+WHERE state LIKE '%i_';
+
+--İkinci karakteri 'e' olan ve en az 6 karakteri bulunan "state" değerlerini çağırın.
+
+SELECT state
+FROM employees
+WHERE state LIKE '_e____%';
+
+--İkinci karakterinden sonra herhangi bir yerinde 'i' bulunan "state" değerlerini çağırın.
+SELECT state
+FROM employees
+WHERE state LIKE '__%i%';
+-------------------------------------------
+CREATE TABLE words
+(
+  word_id CHAR(10) UNIQUE,
+  word VARCHAR(50) NOT NULL,
+  number_of_letters SMALLINT
+);
+INSERT INTO words VALUES (1001, 'hot', 3);
+INSERT INTO words VALUES (1002, 'hat', 3);
+INSERT INTO words VALUES (1003, 'hit', 3);
+INSERT INTO words VALUES (1004, 'hbt', 3);
+INSERT INTO words VALUES (1008, 'hct', 3);
+INSERT INTO words VALUES (1005, 'adem', 4);
+INSERT INTO words VALUES (1006, 'selena', 6);
+INSERT INTO words VALUES (1007, 'yusuf', 5);
+SELECT * FROM words;
+
+--NOT LIKE Condition
+
+--Herhangi bir yerinde 'h' bulunmayan "word" değerlerini çağırın.
+
+SELECT word
+FROM words
+WHERE word NOT LIKE '%h%';
+
+--'t' veya 'f' ile bitmeyen "word" değerlerini çağırın.
+SELECT word
+FROM words
+WHERE word NOT LIKE '%t' AND word NOT LIKE '%f' ;
+
+--Hergangi bir karakterle başlayıp 'a' veya 'e' ile devam etmeyen "word" değerlerini çağırın.
+SELECT word
+FROM words
+WHERE word NOT LIKE '_a%' OR word NOT LIKE '_e%'
+
+--REGULAR Expression Condition:
+
+--İlk karakteri 'h', ikinci karakteri 'o', 'a' veya 'i' olan "word" değerlerini çağırın.
+--1. Yol: LIKE Kullanarak ==> Tekrar sebebi ile tavsiye edilmez.
+SELECT word
+FROM words
+WHERE word LIKE 'ho%t' OR word LIKE 'ha%t' OR word LIKE 'hi%t';
+
+--2. Yol: Regex kullanarak
+SELECT word
+FROM words
+WHERE word ~ 'h[oai](.*)t';
+
+--İlk karakteri 'h', son karakteri 't' ve ikinci karakteri 'a'dan 'e'ye herhangi bir karakter olan "word" değerlerini çağırın.
+
+SELECT word
+FROM words
+WHERE word ~ 'h[a-e](.*)t';
+
+--İlk karakteri 's', 'a' veya 'y' olan "word" değerlerini çağırın.
+
+SELECT word
+FROM words
+WHERE word ~ '^[say](.*)';
+
+--Son karakteri 'm', 'a' veya 'f' olan "word" değerlerini çağırın.
+
+SELECT word
+FROM words
+WHERE word ~ '(.*)[maf]$'; --> (.*) isteğe bağlı konabilir
+
+--İlk karakteri 's' ve son karakteri 'a' olan "word" değerlerini çağırın.
+
+SELECT word
+FROM words
+WHERE word ~ '^[s](.*)[a]$';
+
+--Herhangi bir yerinde 'a' olan "word" değerlerini çağırın.
+SELECT word
+FROM words
+WHERE word ~ 'a'; -->'a' ==> %a%
+
+--İlk karakteri 'd' den 't' ye olan, herhangi bir karakter ile devam edip üçüncü karakteri 'l' olan "word" değerlerini çağırın.
+
+SELECT word
+FROM words
+WHERE word ~ '^[d-t].l';
+
+--İlk karakteri 'd' den 't' ye olan,  herhangi iki karakter ile devam edip dördüncü karakteri 'e' olan "word" değerlerini çağırın.
+SELECT word
+FROM words
+WHERE word ~ '^[d-t]..e(.*)';
+-------------------------------------------------------
+CREATE TABLE workers
+(
+  id CHAR(9),
+  name VARCHAR(50),
+  state VARCHAR(50),
+  salary SMALLINT,
+  company VARCHAR(20)
+);
+INSERT INTO workers VALUES(123456789, 'John Walker', 'Florida', 2500, 'IBM');
+INSERT INTO workers VALUES(234567890, 'Brad Pitt', 'Florida', 1500, 'APPLE');
+INSERT INTO workers VALUES(345678901, 'Eddie Murphy', 'Texas', 3000, 'IBM');
+INSERT INTO workers VALUES(456789012, 'Eddie Murphy', 'Virginia', 1000, 'GOOGLE');
+INSERT INTO workers VALUES(567890123, 'Eddie Murphy', 'Texas', 7000, 'MICROSOFT');
+INSERT INTO workers VALUES(456789012, 'Brad Pitt', 'Texas', 1500, 'GOOGLE');
+INSERT INTO workers VALUES(123456710, 'Mark Stone', 'Pennsylvania', 2500, 'IBM');
+
+SELECT * FROM workers
+
+--'E' başlayıp ve 'y' biten "name" değerleri dışındaki "name" değerlerini çağırın.
+--1. Yol : NOT LIKE kullanarak (ödev)
+SELECT name
+FROM workers
+WHERE name NOT LIKE 'E%' OR name NOT LIKE '%y';
+
+--2.Yol :
+SELECT name
+FROM workers
+WHERE name ~'^[^E](.*)[^y]$'; --> Köşeli parantez içinde ^ kullanırsanız " 'den farklı" anlamına gelir.
+ 
+--'E' başlayıp ve 'y' biten "name" değerlerini çağırın.
+SELECT name
+FROM workers
+WHERE name ~'^[E](.*)[y]$';
+
+--'J', 'B' yada 'E' ile başlayan VE 'r' yada 't' ile biten "name" değerlerini çağırın.
+
+SELECT name
+FROM workers
+WHERE name ~'^[JBE](.*)[rt]$';
+
+--Son karakteri 'r' yada 't' olan YADA ilk karakteri 'J','B', yada 'E' olan "name" değerlerini çağırın.
+SELECT name
+FROM workers
+WHERE name ~'^[JBE]' OR name ~'[rt]$';
+
+--Son karakteri 'r' yada 't' olmayan VE ilk karakteri 'J','B', yada 'E' olmayan "name" değerlerini çağırın.
+SELECT name
+FROM workers
+WHERE name ~'^[^JBE] (.*) [^rt]$';
+
+--Son karakteri 'r' yada 't' olmayan VEYA ilk karakteri 'J','B', yada 'E' olmayan "name" değerlerini çağırın.
+SELECT name
+FROM workers
+WHERE name ~'^[^JBE]' OR name ~'[^rt]$';
+
+--Herhangi bir yerinde 'a' bulunan "name" değerlerini çağırın.
+SELECT name
+FROM workers
+WHERE name ~'a';
+
+--Herhangi bir yerinde 'a' yada 'k' bulunan "name" değerlerini çağırın.
+SELECT name
+FROM workers
+WHERE name ~'ak';
+
+--İlk harfi 'A' dan 'F' ye bir karakter olan ve ikinci harfi herhangi bir karakter olup üçüncü harfi 'a' olan "name" değerlerini çağırın.
+SELECT name
+FROM workers
+WHERE name ~'^[A-F].a(.*)';
+
+--İlk harfi 'A' dan 'F' ye bir karakter olan ve ikinci ve üçüncü harfi herhangi bir karakter olup dördüncü harfi 'i' olan "name" değerlerini çağırın.
+--Ödev
+SELECT name
+FROM workers
+WHERE name ~'^[A-F]..i(.*)';
+
+--Üçüncü karakteri 'o' yada 'x' olan "state" değerlerini çağırın.
+SELECT state
+FROM workers
+WHERE state ~ '^..[ox]';
+
+--Üçüncü karakteri 'o' yada 'x' olmayan "state" değerlerini çağırın.
+SELECT state
+FROM workers
+WHERE state ~ '^..[^ox]';
+
+--Sondan üçüncü karakteri 'n' yada 'x' olan  "state" değerlerini çağırın.(Ödev)
+SELECT state
+FROM workers
+WHERE state ~ '[ox]..';
+
+
+--Sondan üçüncü karakteri 'n' yada 'x' olmayan  "state" değerlerini çağırın.(Ödev)
+
+-------------------------------------------------------------------
+
+--ORDER BY: Recordları artan yada azalan düzende sıralamak için kullanılır.
+--          ORDER BY sadece SELECT Statement ile kullanılır.
+
+--Recordları artan düzende number_of_letters değerine göre sırala.
+
+SELECT *
+FROM words
+ORDER BY number_of_letters; -->ASC keyword'u yazmak zorunlu değildir.Çünkü artan sıralama varsayılan sıralama tipidir.
+
+--Recordları azalan düzende "word" sürununa göre sıralayın.
+SELECT *
+FROM words
+ORDER BY words DESC; --> Azalan sıralamalarda DESC keyword'unu yazmak zorunludur.
+
+--Not: Sütun adı yerine sütun numarası ile de sıralama yapabiliriz.
+SELECT *
+FROM words
+ORDER BY 3 DESC; -->3, numbers_of_letters yerine geçer.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
