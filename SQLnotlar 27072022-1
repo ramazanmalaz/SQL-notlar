@@ -1,0 +1,331 @@
+--Table Nasıl Oluşturulur? :
+
+--1. Yol: Sıfırdan Table Oluşturma:
+
+CREATE TABLE students
+(
+-- ilk sütunları (field) oluşturuldu.
+student_id SMALLINT, 
+student_name VARCHAR(50),
+student_age SMALLINT,
+studen_dob DATE 
+);
+-- SELECT ile bir şeyi seçiyoruz.
+SELECT * FROM students;
+
+--2. Yol: Başka Bir Table Kullanarak Yeni Table Oluşturma:
+
+CREATE TABLE students_name_age
+AS SELECT student_name, student_age FROM students;
+
+SELECT * FROM students_name_age;
+
+-- Table Oluştururken bazı "Constraints" Atamaları Yapabiliriz.
+-- Constraints:
+-- UNIQUE, NOT NULL, PRIMARY KEY, FOREIGN KEY, CHECK CONSTRAINT. 
+-- PRIMERY KEY oluşturmak için iki yol kullanabilir.
+--1. YOL:
+CREATE TABLE students
+(
+student_id SMALLINT PRIMARY KEY, --> Null değer almaz ve her buraya girilen veri tek olmalı.
+
+student_name VARCHAR(50) NOT NULL, --> Null değerler dışında bir atama olacak.
+student_age SMALLINT,
+studen_dob DATE UNIQUE --> students_dob UNIQUE Null değerinden başka değerler tekrarsız yani tek olmalı.
+);
+
+SELECT * FROM students;
+
+-- 2. YOL:
+
+CREATE TABLE students
+(
+
+student_id SMALLINT, 
+student_name VARCHAR(50),
+student_age SMALLINT,
+studen_dob DATE, 
+CONSTRAINT student_id_pk PRIMARY KEY(student_id) --> Burada isim ataması yapabiliyorum, diğer yöntemde otomatik isim ataması yapar.
+);
+
+SELECT * FROM students;
+
+-- FOREIGN KEY Constraint Nasıl Eklenir ? 
+
+CREATE TABLE parents
+(
+student_id SMALLINT,
+parent_name VARCHAR(50),
+phone_number CHAR(11),
+CONSTRAINT student_id_pk PRIMARY KEY(student_id)
+);
+
+
+
+CREATE TABLE students
+(
+student_id SMALLINT, 
+student_name VARCHAR(50),
+student_age SMALLINT,
+student_dob DATE,
+CONSTRAINT student_id_fk FOREIGN KEY(student_id) REFERENCES parents(student_id) --> foreign keyi nerden alacağını REFERENCES diyerek belirttik. 
+);
+
+SELECT * FROM students;
+
+-- CHECK CONTRAINT  Nasıl Eklenir:
+CREATE TABLE students
+(
+student_id SMALLINT, 
+student_name VARCHAR(50),
+student_age SMALLINT,
+studen_dob DATE,
+CONSTRAINT student_age_check CHECK(student_age BETWEEN 0 AND 20), --> 0 ve 20 dahil. yaş aralığı kontrol koydum.
+CONSTRAINT student_name_check CHECK(student_name = UPPER(student_name))
+);
+
+
+--TABLE'A VERI NASIL GIRILIR? :
+CREATE TABLE students
+(
+student_id SMALLINT PRIMARY KEY, 
+student_name VARCHAR(50) UNIQUE,
+student_age SMALLINT NOT NULL,
+student_dob DATE,
+CONSTRAINT student_age_check CHECK(student_age BETWEEN 0 AND 20), --> 0 ve 20 dahil. yaş aralığı kontrol koydum.
+CONSTRAINT student_name_check CHECK(student_name = UPPER(student_name))
+);
+
+INSERT INTO students VALUES(101, 'METE ARISOY', 13, '14-Aug-2000'); --> Sütuna bir şey eklemek için.
+INSERT INTO students VALUES(102, 'MAHMUT ARISOY', 19, '11-Mar-1994');
+INSERT INTO students VALUES(103, 'KARDELEN CABUK', 13, '19-Mar-2000');
+-- Integer Değerler Single Quote(Tek Tırnak) İle veya Yalın Kullanılabilir. 
+INSERT INTO students VALUES('104', 'BEYDA NUR ARISOY', 19, NULL);
+INSERT INTO students VALUES('105', 'NEVZAT ARISOY', 19, '15-Oct-1970');
+INSERT INTO students VALUES('106', 'HACER ARISOY', 19, '14-Jun-1975');
+INSERT INTO students VALUES('107', 'ELİF ERVA ARISOY', 19, '03-Nov-2019');
+-- Spesifik bir sütuna veri girme.
+INSERT INTO students(student_id,student_age) VALUES(108, 1);
+INSERT INTO students(student_name, student_id, student_age) VALUES('PETER PARKER',109, 20);
+
+-- Var Olan Bir Data Nasıl Değiştirilir? :
+UPDATE students
+SET student_age = 4
+WHERE student_id = 107;
+
+UPDATE students
+SET student_name = 'JOE OCEAN'
+WHERE student_id = 108;
+SELECT * FROM students;
+
+-- PETER PARKER, dob Sütununu 11-Dec-1997 değerine değiştir.
+
+UPDATE students
+SET student_dob = '11-Dec-1997'
+WHERE student_id = 109;
+SELECT * FROM students;
+
+--Çoklu Record Değiştirme: 
+
+--id'si 1106'dan küçük tüm dob değerlerini  olarak değiştirin.
+UPDATE students
+SET student_dob = '18-Aug-2021'
+WHERE student_id <= 106;
+SELECT * FROM students;
+
+--Tüm age değerlerini en büyük age değeri ile güncelleyin.
+UPDATE students
+SET student_age = (SELECT MAX(student_age) FROM students);
+-- WHERE kullanmadık çünkü koşulum yok ben hepsini değişmek istiyorum.
+SELECT * FROM students
+
+--Tüm dob değerlerini en küçük dob değeri ile güncelleyin.
+UPDATE students
+SET student_dob = (SELECT MIN(student_dob) FROM students);
+SELECT * FROM students;
+
+--Sütunları worker_id, worker_name, worker_salary olan bir "workers" table oluşturun.
+--worker_id sütununu worker_id_pk adıyla primary key atayın.
+--4 record girişi yapın.
+--Table'ı konsolda görüntüleyin.
+CREATE TABLE workers
+(
+worker_id SMALLINT,
+worker_name VARCHAR(50),
+worker_salary INT,
+CONSTRAINT worker_id_pk PRIMARY KEY(worker_id)
+);
+INSERT INTO workers VALUES(001, 'METE ARISOY', 13000);
+INSERT INTO workers VALUES(002, 'MAHMUT ARISOY', 15000);
+INSERT INTO workers VALUES(003, 'AHMET ÇİÇEK', 10000);
+INSERT INTO workers VALUES(004, 'SÜLEYMAN TAŞ', 11500);
+SELECT * FROM workers;
+
+-- Mete'nin salary değerini en yüksek salary değerinin %20 düşüğüne yükseltin.
+UPDATE workers
+SET worker_salary = (SELECT MAX(worker_salary)*0.8 FROM workers)
+WHERE worker_id = 1;
+SELECT * FROM workers; 
+
+-- Mahmnut'un salary değerini en düşük salary değerinin %30 fazlasına düşürün.
+UPDATE workers
+SET worker_salary = (SELECT MIN(worker_salary)*1.3 FROM workers)
+WHERE worker_id = 2;
+SELECT * FROM workers; 
+
+--ORTALAMA SALARY DERĞİNDEN DÜŞÜK OLAN SALARY DEĞERLERİNİ 1000 ARTTIRIN.
+UPDATE workers
+SET worker_salary =  worker_salary +1000
+WHERE worker_salary < (SELECT AVG(worker_salary) FROM workers);
+SELECT * FROM workers;
+
+--Ortalama salary değerinden düşük salary değerlerine ortalama salary değeri girin.
+UPDATE workers
+SET worker_salary =  (SELECT AVG(worker_salary) FROM workers)
+WHERE worker_salary < (SELECT AVG(worker_salary) FROM workers);
+SELECT * FROM workers;
+
+
+
+
+--IS NULL CONDITION
+
+CREATE TABLE people
+(
+ssn CHAR(9),
+name VARCHAR(50),
+address VARCHAR(80)
+);
+INSERT INTO people VALUES(123456789, 'Mark Star', 'Florida');
+INSERT INTO people VALUES(234567890, 'Angie Way', 'Virginia');
+INSERT INTO people VALUES(345678901, 'Maryy Tien', 'New Jersey');
+INSERT INTO people(ssn, address) VALUES(456789012, 'Michigan');
+INSERT INTO people(ssn, address) VALUES(567890123, 'California');
+INSERT INTO people(ssn, name) VALUES(567890123, 'California');
+
+SELECT * FROM people;
+
+-- NULL name değerlerini "to be inserted later" olarak güncelleyin.
+UPDATE people
+SET name = 'To be inserted later.'
+WHERE name IS NULL;
+
+SELECT * FROM people;
+
+--NULL address değerlerini "to be inserted later" olarak güncelleyin.
+UPDATE people
+SET address = 'To be inserted later.'
+WHERE address IS NULL;
+
+SELECT * FROM people;
+
+--Bir Table'dan Record nasıl silinir.
+
+DELETE FROM people
+WHERE ssn = '234567890'; -->ssn Field type'ı Char o yüzden tırnak içinde.
+
+SELECT * FROM people;
+
+--ismi olmayanları sil.
+DELETE FROM people
+WHERE name = 'To be inserted later.';
+SELECT * FROM people;
+
+-- Tüm Recordları sil.
+-- DELETE Command sadece Recordları siler.
+DELETE FROM people;
+SELECT * FROM people;
+
+-- name ve address değerleri NULL olan recordları silin.
+DELETE FROM people
+WHERE name IS NULL OR address IS NULL;
+SELECT * FROM people;
+
+--ssn değeri 123456789'dan büyük ve 345678901 küçük olan record ları silin.
+DELETE FROM people
+WHERE ssn > '123456789' AND ssn < '345678901';
+SELECT * FROM people; 
+
+-- name değeri NULL olmayan tüm record'ları silin.
+DELETE FROM people
+WHERE name IS NOT NULL;
+SELECT * FROM people;
+
+
+--TRUNCATE Command tüm recordları siler.
+--DELETE ile kısmen aynı işlemi yapar.
+
+--TRUNCATE ile DELETE arasındaki farklar:
+--1) DELETE komutunda filtrelemek için WHERE Clause kullanılabilir fakat TRUNCATE komutunda filtreleme yoktur.
+--2) DELETE komutunda silinen record'ları geri çağırabilirim (ROLL BACK) ama TRUNCATE komutunda çağıramam.
+TRUNCATE TABLE people;
+
+
+--SCHEMA (Şema)'dan table nasıl kaldırılır:
+DROP TABLE people; 
+
+--DQL (Data Query Language) data okumak için kullanılan dil. (SELECT)
+SELECT * FROM students
+
+CREATE TABLE workers
+(
+    id SMALLINT,
+    name VARCHAR(50),
+    salary SMALLINT,
+    CONSTRAINT id4_pk PRIMARY KEY(id)
+);
+INSERT INTO workers VALUES(10001, 'Ali Can', 12000);
+INSERT INTO workers VALUES(10002, 'Veli Han', 2000);
+INSERT INTO workers VALUES(10003, 'Mary Star', 7000);
+INSERT INTO workers VALUES(10004, 'Angie Ocean', 8500);
+SELECT * FROM workers;
+
+-- Tüm Recordları nasıl çağrılır:
+SELECT * 
+FROM workers;
+
+--Spesifik bir Field nasıl çağrılır:
+SELECT name 
+FROM workers;
+
+--Spesifik çoklu Field nasıl çağrılır:
+SELECT name, salary
+FROM workers;
+
+--Spesifik bir record nasıl çağrılır:
+SELECT *
+FROM workers
+WHERE id = 10001;
+
+--Spesifik çoklu record nasıl çağrılır:
+SELECT *
+FROM workers
+WHERE id < 10003;
+
+
+-- salary 2000, 7000 VE 12000 OLANLARI ÇAĞIR.
+SELECT *
+FROM workers
+WHERE salary = 2000 or salary = 7000 or salary = 12000;
+-- 2.YOL
+SELECT *
+FROM workers
+WHERE salary IN (2000,7000,12000);
+
+
+--Spesifik bir hücre (Cell) nasıl çağrılır:
+SELECT name 
+FROM workers
+WHERE id = 10002;
+
+
+--En yüksek salary değeri olan record'u çağırın.
+SELECT *
+FROM workers
+WHERE salary = (SELECT MAX(salary) FROM workers);
+
+
+--En düşük salary değeri olan name'i çağırın.
+SELECT name
+FROM workers
+WHERE salary = (SELECT MIN(salary) FROM workers);
